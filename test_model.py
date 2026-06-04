@@ -25,6 +25,27 @@ try:
         if special_char_count > 3:
             return "Fake", 92.5
             
+        # Check for a series of numbers (e.g. 1234 or 1 2 3 4 or 1,2,3,4)
+        if re.search(r'\d{4,}', review_text) or re.search(r'\b\d+\b(?:\s*,\s*|\s+)\b\d+\b(?:\s*,\s*|\s+)\b\d+\b(?:\s*,\s*|\s+)\b\d+\b', review_text):
+            return "Fake", 95.0
+            
+        # Check for a sequence of gibberish (e.g., words with very low vowels or long consonant clusters)
+        words = re.findall(r'[a-zA-Z]+', review_text)
+        vowels = set("aeiouyAEIOUY")
+        for w in words:
+            if len(w) >= 10:
+                vowel_count = sum(1 for c in w if c in vowels)
+                if vowel_count <= 1:
+                    return "Fake", 96.0
+            consecutive_consonants = 0
+            for char in w:
+                if char.lower() not in vowels:
+                    consecutive_consonants += 1
+                    if consecutive_consonants >= 6:
+                        return "Fake", 96.0
+                else:
+                    consecutive_consonants = 0
+            
         # Check for strong incentivized/fake review indicators (Rule-based overrides)
         incentives = ["free product", "promotion", "received this product", "in exchange for", "discount code", "refunded", "coupon", "gift card", "scammer"]
         for phrase in incentives:
