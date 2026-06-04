@@ -20,6 +20,11 @@ try:
         if "love this well made sturdy and very comfortable" in normalized_clean:
             return "Genuine", 94.0
             
+        # Check for too many special characters (e.g., excessive symbols/punctuation like !, @, #, $, %, etc.)
+        special_char_count = len(re.findall(r'[^a-zA-Z0-9\s.,\'\"\-]', review_text))
+        if special_char_count > 3:
+            return "Fake", 92.5
+            
         # Check for strong incentivized/fake review indicators (Rule-based overrides)
         incentives = ["free product", "promotion", "received this product", "in exchange for", "discount code", "refunded", "coupon", "gift card", "scammer"]
         for phrase in incentives:

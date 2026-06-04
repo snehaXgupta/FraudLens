@@ -270,6 +270,11 @@ def predict_review(review_text, cleaned_text):
     if "love this well made sturdy and very comfortable" in normalized_clean:
         return False, 94.0  # is_fake = False (Genuine), confidence = 94.0%
         
+    # Check for too many special characters (e.g., excessive symbols/punctuation like !, @, #, $, %, etc.)
+    special_char_count = len(re.findall(r'[^a-zA-Z0-9\s.,\'\"\-]', review_text))
+    if special_char_count > 3:
+        return True, 92.5  # Flag as Fake review with high confidence
+        
     # Check for strong incentivized/fake review indicators (Rule-based overrides)
     incentives = ["free product", "promotion", "received this product", "in exchange for", "discount code", "refunded", "coupon", "gift card", "scammer"]
     for phrase in incentives:
