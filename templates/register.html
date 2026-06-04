@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register | FraudLens - AI-Powered Review Verification</title>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+  <div class="auth-wrapper">
+    <!-- Animated background glows -->
+    <div class="auth-bg-glows">
+      <div class="glow-orb glow-orb-1"></div>
+      <div class="glow-orb glow-orb-2"></div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Auth Card -->
+    <div class="auth-container glass-panel">
+      <!-- Theme Switcher Top-Right inside card -->
+      <div style="position: absolute; top: 20px; right: 20px;">
+        <button id="theme-toggle" class="nav-btn" style="width: 32px; height: 32px; font-size: 14px;">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+
+      <div class="auth-header">
+        <div class="auth-logo">
+          <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="FraudLens Logo">
+        </div>
+        <h1 class="auth-title"><span class="text-gradient">FraudLens</span></h1>
+        <p class="auth-subtitle text-tech">Create Platform Account</p>
+      </div>
+
+      {% if error %}
+      <div class="custom-toast toast-danger" style="margin-bottom: 20px; animation: none; position: static; min-width: 100%;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>{{ error }}</span>
+      </div>
+      {% endif %}
+
+      <form action="{{ url_for('register') }}" method="POST" id="register-form">
+        <!-- Full Name -->
+        <div class="form-group">
+          <label class="form-label" for="name">Full Name</label>
+          <div class="input-container">
+            <i class="fa-regular fa-user input-icon"></i>
+            <input 
+              type="text" 
+              id="name" 
+              name="name" 
+              class="form-input" 
+              placeholder="Shaurya Bajpai" 
+              required
+            >
+          </div>
+        </div>
+
+        <!-- Email Address -->
+        <div class="form-group">
+          <label class="form-label" for="email">E-mail Address</label>
+          <div class="input-container">
+            <i class="fa-regular fa-envelope input-icon"></i>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              class="form-input" 
+              placeholder="student@university.edu" 
+              required
+            >
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div class="input-container">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              class="form-input" 
+              placeholder="••••••••" 
+              required
+            >
+            <i class="fa-regular fa-eye-slash toggle-pass" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted); transition: var(--transition-smooth);"></i>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label class="form-label" for="confirm_password">Confirm Password</label>
+          <div class="input-container">
+            <i class="fa-solid fa-lock-open input-icon"></i>
+            <input 
+              type="password" 
+              id="confirm_password" 
+              name="confirm_password" 
+              class="form-input" 
+              placeholder="••••••••" 
+              required
+            >
+            <i class="fa-regular fa-eye-slash toggle-pass" style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted); transition: var(--transition-smooth);"></i>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn-primary">
+          <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Complete Registration
+        </button>
+      </form>
+
+      <!-- Login Redirect -->
+      <div class="auth-footer">
+        Already have an account? <a href="{{ url_for('login') }}" class="auth-footer-link">Sign In</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom JS -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script>
+    // Double password fields toggle
+    document.querySelectorAll('.toggle-pass').forEach(icon => {
+      icon.addEventListener('click', function() {
+        const inputField = this.previousElementSibling;
+        if (inputField.type === 'password') {
+          inputField.type = 'text';
+          this.classList.remove('fa-eye-slash');
+          this.classList.add('fa-eye');
+        } else {
+          inputField.type = 'password';
+          this.classList.remove('fa-eye');
+          this.classList.add('fa-eye-slash');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

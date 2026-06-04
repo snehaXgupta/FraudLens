@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuthentiX - Fake Review Detection Presentation</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #111827;
+            --card-border: #1f2937;
+            --accent-teal: #0d9488;
+            --accent-teal-glow: rgba(13, 148, 136, 0.15);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --slide-ratio: 56.25%; /* 16:9 */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Top Bar info */
+        header {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            right: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            letter-spacing: 0.5px;
+        }
+
+        .logo-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--accent-teal);
+            box-shadow: 0 0 10px var(--accent-teal);
+        }
+
+        .deck-badge {
+            background: rgba(13, 148, 136, 0.1);
+            border: 1px solid rgba(13, 148, 136, 0.2);
+            color: var(--accent-teal);
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Presentation Container */
+        .presentation-wrapper {
+            position: relative;
+            width: 90vw;
+            max-width: 1200px;
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, #0f172a 0%, #0b0f19 100%);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        /* Slide Styles */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            transform: translateX(30px);
+            padding: 4.5% 6%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateX(0);
+        }
+
+        /* Slide Elements */
+        .slide-header {
+            margin-bottom: 3.5%;
+            position: relative;
+            padding-bottom: 12px;
+        }
+
+        .slide-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 3px;
+            background: var(--accent-teal);
+            border-radius: 2px;
+        }
+
+        .slide-category {
+            font-size: 0.75rem;
+            color: var(--accent-teal);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 4px;
+        }
+
+        .slide-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .slide-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Cover Slide */
+        .cover-slide {
+            justify-content: center;
+            align-items: flex-start;
+            padding-left: 10%;
+        }
+
+        .cover-accent-line {
+            width: 4px;
+            height: 90px;
+            background: var(--accent-teal);
+            box-shadow: 0 0 15px var(--accent-teal);
+            border-radius: 4px;
+            margin-bottom: 24px;
+        }
+
+        .cover-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .cover-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .cover-hint {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Two Column Layout */
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 5%;
+            height: 100%;
+            align-items: center;
+        }
+
+        .bullet-list {
+            list-style: none;
+        }
+
+        .bullet-list li {
+            position: relative;
+            padding-left: 28px;
+            margin-bottom: 18px;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        .bullet-list li::before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: var(--accent-teal);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        /* Card Layout */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card:hover {
+            border-color: var(--accent-teal);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 0 15px var(--accent-teal-glow);
+            transform: translateY(-2px);
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent-teal);
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .card-desc {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Column Layouts */
+        .grid-3col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .problem-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .problem-num {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent-teal);
+            margin-bottom: 12px;
+            opacity: 0.8;
+        }
+
+        /* Grid 2x2 */
+        .grid-2x2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* Workflow Steps */
+        .workflow-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .flow-step {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 16px 12px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            position: relative;
+        }
+
+        .flow-step-num {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--accent-teal);
+            margin-bottom: 8px;
+        }
+
+        .flow-step-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .flow-step-desc {
+            font-size: 0.75rem;
+            line-height: 1.4;
+            color: var(--text-secondary);
+        }
+
+        .flow-arrow {
+            display: flex;
+            align-items: center;
+            color: var(--accent-teal);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* Large Stat Card */
+        .stat-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 5rem;
+            font-weight: 800;
+            color: var(--accent-teal);
+            line-height: 1;
+            text-shadow: 0 0 20px var(--accent-teal-glow);
+        }
+
+        .stat-label {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            margin-top: 8px;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .stat-sub {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            max-width: 250px;
+            line-height: 1.4;
+        }
+
+        /* Thank You Slide */
+        .thankyou-slide {
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .thankyou-card {
+            max-width: 600px;
+            padding: 40px;
+            background: linear-gradient(135deg, #111827 0%, #0f172a 100%);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .thankyou-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--accent-teal);
+            margin-bottom: 12px;
+        }
+
+        .thankyou-subtitle {
+            font-size: 1.3rem;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+        }
+
+        .thankyou-footer {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Bottom Controls */
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 30px;
+            right: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            background: rgba(17, 24, 39, 0.7);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--accent-teal);
+            color: var(--accent-teal);
+            background: rgba(13, 148, 136, 0.1);
+            transform: scale(1.05);
+        }
+
+        .slide-progress {
+            display: flex;
+            gap: 8px;
+        }
+
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--card-border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: var(--accent-teal);
+            width: 24px;
+            border-radius: 4px;
+            box-shadow: 0 0 8px var(--accent-teal);
+        }
+
+        .slide-counter {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Fullscreen Button */
+        .fs-btn {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: rgba(17, 24, 39, 0.7);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            z-index: 15;
+        }
+
+        .fs-btn:hover {
+            border-color: var(--accent-teal);
+            background: rgba(13, 148, 136, 0.1);
+            color: var(--accent-teal);
+        }
+
+        /* Keyboard tips styling */
+        .keyboard-tips {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 12px;
+        }
+
+        .kbd-key {
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--text-secondary);
+            font-family: monospace;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header information -->
+    <header>
+        <div class="logo-section">
+            <div class="logo-dot"></div>
+            <span>AuthentiX</span>
+        </div>
+        <div class="deck-badge">Project Slide Deck</div>
+    </header>
+
+    <!-- Fullscreen control -->
+    <button class="fs-btn" id="fsBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        Fullscreen
+    </button>
+
+    <!-- Presentation Viewport -->
+    <div class="presentation-wrapper" id="presentationWrapper">
+        <div class="slide-container">
+            
+            <!-- SLIDE 1: Cover Slide (First Empty Page) -->
+            <div class="slide cover-slide active" data-index="1">
+                <div class="cover-accent-line"></div>
+                <h1 class="cover-title">AuthentiX</h1>
+                <p class="cover-subtitle">Machine Learning & NLP Powered Fake Review Detection Engine</p>
+                <p class="cover-hint">(Empty template layout with background placeholders, ready for branding)</p>
+            </div>
+
+            <!-- SLIDE 2: Intro (Part 1) -->
+            <div class="slide" data-index="2">
+                <div class="slide-header">
+                    <div class="slide-category">Introduction</div>
+                    <h2 class="slide-title">Introducing AuthentiX & FraudLens</h2>
+                </div>
+                <div class="slide-content">
+                    <div class="grid-2col">
+                        <ul class="bullet-list">
+                            <li>An intelligent platform designed to combat the growing issue of fraudulent and computer-generated online reviews.</li>
+                            <li>Employs <strong>Natural Language Processing (NLP)</strong> to pre-process and extract syntax markers from unstructured feedback.</li>
+                            <li>Integrates active machine learning vector pipelines for classification outputs.</li>
+                            <li>Supports voice review processing and web-scraping for seamless consumer usage.</li>
+                        </ul>
+                        <div class="card-list">
+                            <div class="card">
+                                <h3 class="card-title">Intelligent Prediction</h3>
+                                <p class="card-desc">Evaluates token density and structural characteristics to flag synthetic reviews generated by bots or copy farms.</p>
+                            </div>
+                            <div class="card">
+                                <h3 class="card-title">Sentiment Analysis</h3>
+                                <p class="card-desc">Correlates positive/negative emotion levels to identify extreme reviews that commonly match commercial manipulation.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 3: Intro (Part 2) -->
+            <div class="slide" data-index="3">
+                <div class="slide-header">
+                    <div class="slide-category">Context & Significance</div>
+                    <h2 class="slide-title">The E-Commerce Review Crisis</h2>
+                </div>
+                <div class="slide-content">
+                    <div class="grid-2col">
+                        <ul class="bullet-list">
+                            <li>E-Commerce growth has turned online reviews into the single most influential driver of customer buying choices.</li>
+                            <li>Competitors and merchants routinely buy artificial feedback packs to boost search visibility or trash rivals.</li>
+                            <li>Generative AI tools (LLMs) make it simple for sellers to script highly plausible, organic-sounding reviews at near-zero cost.</li>
+                            <li>AuthentiX acts as a trust verifier, helping buyers inspect language signals and uncover the real truth.</li>
+                        </ul>
+                        <div class="card">
+                            <div class="stat-container">
+                                <div class="stat-value">70%+</div>
+                                <div class="stat-label">OF ONLINE SHOPPERS</div>
+                                <p class="stat-sub">Rely strictly on customer reviews to purchase, making ratings highly vulnerable targets for fraud.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 4: Problem Statement -->
+            <div class="slide" data-index="4">
+                <div class="slide-header">
+                    <div class="slide-category">The Challenge</div>
+                    <h2 class="slide-title">Problem Statement</h2>
+                </div>
+                <div class="slide-content">
+                    <div class="grid-3col">
+                        <div class="card problem-card">
+                            <div class="problem-num">01</div>
+                            <h3 class="card-title">The Trust Deficit</h3>
+                            <p class="card-desc">Buyers can no longer trust online platforms. Good products are buried, while low-quality goods climb top charts due to bought, insincere ratings.</p>
+                        </div>
+                        <div class="card problem-card">
+                            <div class="problem-num">02</div>
+                            <h3 class="card-title">AI-Scripters</h3>
+                            <p class="card-desc">Standard filters look for simple spam triggers. Modern AI constructs context-rich, unique comments that bypass standard security scripts.</p>
+                        </div>
+                        <div class="card problem-card">
+                            <div class="problem-num">03</div>
+                            <h3 class="card-title">Scale & Speed</h3>
+                            <p class="card-desc">With millions of reviews uploaded daily, manual verification is impossible. Consumers need real-time, automated verification tools.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 5: Objectives -->
+            <div class="slide" data-index="5">
+                <div class="slide-header">
+                    <div class="slide-category">Goals</div>
+                    <h2 class="slide-title">Project Objectives</h2>
+                </div>
+                <div class="slide-content">
+                    <div class="grid-2x2">
+                        <div class="card">
+                            <h3 class="card-title">Automate Prediction</h3>
+                            <p class="card-desc">Deploy trained classifiers to automatically evaluate written text and classify it as genuine or fake in milliseconds.</p>
+                        </div>
+                        <div class="card">
+                            <h3 class="card-title">Integrate Live Crawlers</h3>
+                            <p class="card-desc">Extract active e-commerce reviews using scrapers, eliminating the need to copy-paste review text manually.</p>
+                        </div>
+                        <div class="card">
+                            <h3 class="card-title">Sentiment & Fraud Mapping</h3>
+                            <p class="card-desc">Analyze emotional intensity to reveal bias patterns that typically identify organized marketing campaigns.</p>
+                        </div>
+                        <div class="card">
+                            <h3 class="card-title">User Accessibility</h3>
+                            <p class="card-desc">Build a responsive web application dashboard presenting analytical probabilities, cleaned text tokens, and history logs.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 6: System Workflow -->
+            <div class="slide" data-index="6">
+                <div class="slide-header">
+                    <div class="slide-category">System Architecture</div>
+                    <h2 class="slide-title">System Workflow</h2>
+                </div>
+                <div class="slide-content">
+                    <div class="workflow-flow">
+                        <div class="flow-step">
+                            <div class="flow-step-num">01</div>
+                            <div class="flow-step-title">Input</div>
+                            <p class="flow-step-desc">User pastes text review, uploads voice audio, or enters a product page URL.</p>
+                        </div>
+                        <div class="flow-arrow">&rarr;</div>
+                        <div class="flow-step">
+                            <div class="flow-step-num">02</div>
+                            <div class="flow-step-title">Scraper</div>
+                            <p class="flow-step-desc">BeautifulSoup/Selenium extracts review tags from Amazon/Flipkart.</p>
+                        </div>
+                        <div class="flow-arrow">&rarr;</div>
+                        <div class="flow-step">
+                            <div class="flow-step-num">03</div>
+                            <div class="flow-step-title">Process</div>
+                            <p class="flow-step-desc">Lowercasing, punctuation stripping, NLTK stopword clean.</p>
+                        </div>
+                        <div class="flow-arrow">&rarr;</div>
+                        <div class="flow-step">
+                            <div class="flow-step-num">04</div>
+                            <div class="flow-step-title">Vectorize</div>
+                            <p class="flow-step-desc">TF-IDF vectorizer builds 5000 feature sparse matrices.</p>
+                        </div>
+                        <div class="flow-arrow">&rarr;</div>
+                        <div class="flow-step">
+                            <div class="flow-step-num">05</div>
+                            <div class="flow-step-title">Model</div>
+                            <p class="flow-step-desc">Logistic Regression outputs rating authenticity score.</p>
+                        </div>
+                        <div class="flow-arrow">&rarr;</div>
+                        <div class="flow-step">
+                            <div class="flow-step-num">06</div>
+                            <div class="flow-step-title">Output</div>
+                            <p class="flow-step-desc">Results display on dashboard with logs saved to session history.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 7: Blank Page (Demo Transition) -->
+            <div class="slide cover-slide" data-index="7">
+                <div class="cover-accent-line" style="height: 60px;"></div>
+                <h1 class="cover-title" style="font-size: 2.8rem;">Project Transition</h1>
+                <p class="cover-subtitle">Ready for Interactive Software Demonstration or Video Showcase</p>
+                <p class="cover-hint">(This slide is intentionally blank for presentation pacing)</p>
+            </div>
+
+            <!-- SLIDE 8: Implementation Details -->
+            <div class="slide" data-index="8">
+                <div class="slide-header">
+                    <div class="slide-category">Backend Details</div>
+                    <h2 class="slide-title">Technical Implementation</h2>
+                </div>
+                <div class="slide-content">
+                    <div class="grid-2col">
+                        <div class="card">
+                            <h3 class="card-title" style="border-bottom: 1px solid var(--card-border); padding-bottom: 8px; margin-bottom: 12px;">Data Pipeline</h3>
+                            <ul class="bullet-list" style="margin-top: 8px;">
+                                <li style="font-size:0.9rem; margin-bottom:10px;"><strong>Dataset Construction:</strong> Combines fake reviews (labeled CG/OR) and Amazon reviews (filtered by ratings).</li>
+                                <li style="font-size:0.9rem; margin-bottom:10px;"><strong>Cleaning:</strong> Regex strips special characters; NLTK eliminates stopwords.</li>
+                                <li style="font-size:0.9rem; margin-bottom:10px;"><strong>Vectorization:</strong> <code>TfidfVectorizer</code> fit with max 5000 features.</li>
+                                <li style="font-size:0.9rem; margin-bottom:10px;"><strong>Scraping Framework:</strong> Static HTML via BS4, dynamic pages handled by Selenium WebDriver.</li>
+                            </ul>
+                        </div>
+                        <div class="card">
+                            <h3 class="card-title" style="border-bottom: 1px solid var(--card-border); padding-bottom: 8px; margin-bottom: 12px;">Model Optimization</h3>
+                            <ul class="bullet-list" style="margin-top: 8px;">
+                                <li style="font-size:0.9rem; margin-bottom:10px;"><strong>Logistic Regression:</strong> Chosen model, achieving great execution speed and high accuracy score.</li>
+                                <li style="font-size:0.9rem; margin-bottom:10px;"><strong>Random Forest:</strong> Built with 100 trees to evaluate complex features.</li>
+                                <li style="font-size:0.9rem; margin-bottom:10px;"><strong>Multinomial Naive Bayes:</strong> Serves as the baseline model.</li>
+                                <li style="font-size:0.9rem; margin-bottom:10px;"><strong>Flask Serving:</strong> Weights exported as pickles (<code>joblib</code>) for REST API queries.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 9: Application -->
+            <div class="slide" data-index="9">
+                <div class="slide-header">
+                    <div class="slide-category">Use Cases</div>
+                    <h2 class="slide-title">Practical Applications</h2>
+                </div>
+                <div class="slide-content">
+                    <div class="grid-3col">
+                        <div class="card">
+                            <h3 class="card-title">Shopping Assistant</h3>
+                            <p class="card-desc">Can be deployed as a browser plugin to automatically analyze review lists as users browse web store products, labeling real vs. fake comments.</p>
+                        </div>
+                        <div class="card">
+                            <h3 class="card-title">Brand Reputation</h3>
+                            <p class="card-desc">Enables brands to monitor their catalog, detect targeted negative review attacks by competitors, and evaluate actual, verified feedback trends.</p>
+                        </div>
+                        <div class="card">
+                            <h3 class="card-title">API Integration</h3>
+                            <p class="card-desc">Provides online marketplaces with an automatic verification API to scan reviews on submission, preventing spam profiles from posting reviews.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 10: Limitations -->
+            <div class="slide" data-index="10">
+                <div class="slide-header">
+                    <div class="slide-category">Challenges</div>
+                    <h2 class="slide-title">System Limitations</h2>
+                </div>
+                <div class="slide-content">
+                    <div class="grid-2col">
+                        <div class="card">
+                            <h3 class="card-title">Scraper Reliability</h3>
+                            <ul class="bullet-list">
+                                <li style="font-size:0.9rem; margin-bottom:10px;">E-commerce websites change layouts frequently, breaking specific scraping selector lines.</li>
+                                <li style="font-size:0.9rem; margin-bottom:10px;">Anti-scraping layers (CAPTCHAs/Cloudflare) block automatic crawling IP requests.</li>
+                                <li style="font-size:0.9rem; margin-bottom:10px;">Dynamic SPA sites require heavy Selenium runtime engines on deployment hosts.</li>
+                            </ul>
+                        </div>
+                        <div class="card">
+                            <h3 class="card-title">Algorithmic Limits</h3>
+                            <ul class="bullet-list">
+                                <li style="font-size:0.9rem; margin-bottom:10px;">The models are trained exclusively on English texts; no support for multi-language comments.</li>
+                                <li style="font-size:0.9rem; margin-bottom:10px;">TF-IDF vectorizer analyzes frequency and ignores deep grammatical context or sarcasm.</li>
+                                <li style="font-size:0.9rem; margin-bottom:10px;">Degrades to a rule-based mock engine if deployment servers run out of RAM.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 11: Future Enhancements -->
+            <div class="slide" data-index="11">
+                <div class="slide-header">
+                    <div class="slide-category">Roadmap</div>
+                    <h2 class="slide-title">Future Enhancements</h2>
+                </div>
+                <div class="slide-content">
+                    <div class="grid-2x2">
+                        <div class="card">
+                            <h3 class="card-title">Deep Learning Models</h3>
+                            <p class="card-desc">Integrate transformer models like BERT, RoBERTa, or GPT API evaluations to capture semantic meanings and advanced context.</p>
+                        </div>
+                        <div class="card">
+                            <h3 class="card-title">Proxy Rotation Scrapers</h3>
+                            <p class="card-desc">Employ automated proxy rotation, user-agent pools, and CAPTCHA solvers to bypass security blocks during web crawling.</p>
+                        </div>
+                        <div class="card">
+                            <h3 class="card-title">Browser Extension</h3>
+                            <p class="card-desc">Build a browser plug-in that parses comments directly from e-commerce product pages, overlaying ratings as a visual grade.</p>
+                        </div>
+                        <div class="card">
+                            <h3 class="card-title">Multilingual Support</h3>
+                            <p class="card-desc">Train classifiers on multi-language datasets to flag fraudulent reviews written in other major languages.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SLIDE 12: Thank You -->
+            <div class="slide thankyou-slide" data-index="12">
+                <div class="thankyou-card">
+                    <h1 class="thankyou-title">Thank You!</h1>
+                    <p class="thankyou-subtitle">AuthentiX — Empowering Honest E-Commerce</p>
+                    <p class="thankyou-footer">Questions & Answers Session | Project Team</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bottom Controls section -->
+    <div class="controls">
+        <div class="slide-counter" id="slideCounter">Slide 1 of 12</div>
+        
+        <div class="slide-progress" id="progressDots">
+            <!-- Progress dots generated dynamically -->
+        </div>
+
+        <div class="nav-buttons">
+            <button class="nav-btn" id="prevBtn" aria-label="Previous Slide">&larr;</button>
+            <button class="nav-btn" id="nextBtn" aria-label="Next Slide">&rarr;</button>
+        </div>
+    </div>
+
+    <div class="keyboard-tips">
+        <span>Use keyboard keys:</span>
+        <span><span class="kbd-key">&larr;</span> Left Arrow / Page Up</span>
+        <span><span class="kbd-key">&rarr;</span> Right Arrow / Space / Page Down</span>
+        <span><span class="kbd-key">Esc</span> Exit Fullscreen</span>
+    </div>
+
+    <!-- Presentation Logic -->
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const slideCounter = document.getElementById('slideCounter');
+        const progressDots = document.getElementById('progressDots');
+        const fsBtn = document.getElementById('fsBtn');
+        const wrapper = document.getElementById('presentationWrapper');
+        
+        let currentSlide = 1;
+        const totalSlides = slides.length;
+
+        // Generate progress dots
+        for (let i = 1; i <= totalSlides; i++) {
+            const dot = document.createElement('div');
+            dot.classList.add('progress-dot');
+            if (i === 1) dot.classList.add('active');
+            dot.addEventListener('click', () => goToSlide(i));
+            progressDots.appendChild(dot);
+        }
+
+        const dots = document.querySelectorAll('.progress-dot');
+
+        function updateControls() {
+            slideCounter.textContent = `Slide ${currentSlide} of ${totalSlides}`;
+            
+            // Update dots
+            dots.forEach((dot, index) => {
+                if (index + 1 === currentSlide) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+
+            // Enable/disable buttons
+            prevBtn.style.opacity = currentSlide === 1 ? '0.3' : '1';
+            prevBtn.style.pointerEvents = currentSlide === 1 ? 'none' : 'auto';
+            nextBtn.style.opacity = currentSlide === totalSlides ? '0.3' : '1';
+            nextBtn.style.pointerEvents = currentSlide === totalSlides ? 'none' : 'auto';
+        }
+
+        function goToSlide(slideIndex) {
+            if (slideIndex < 1 || slideIndex > totalSlides) return;
+            
+            // Remove active classes
+            slides.forEach(slide => {
+                slide.classList.remove('active');
+            });
+            
+            currentSlide = slideIndex;
+            slides[currentSlide - 1].classList.add('active');
+            
+            updateControls();
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                goToSlide(currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                goToSlide(currentSlide - 1);
+            }
+        }
+
+        // Event listeners for buttons
+        nextBtn.addEventListener('click', nextSlide);
+        prevBtn.addEventListener('click', prevSlide);
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+
+        // Fullscreen Toggle
+        fsBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                wrapper.requestFullscreen().catch(err => {
+                    alert(`Error trying to enable full-screen mode: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // Adjust presentation style in full screen
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                wrapper.style.width = '100vw';
+                wrapper.style.height = '100vh';
+                wrapper.style.maxWidth = 'none';
+                wrapper.style.borderRadius = '0';
+                wrapper.style.border = 'none';
+                fsBtn.innerHTML = `
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6m10-6h-6v6M4 10h6V4m10 6h-6V4"/></svg>
+                    Exit Fullscreen
+                `;
+            } else {
+                wrapper.style.width = '90vw';
+                wrapper.style.height = '';
+                wrapper.style.maxWidth = '1200px';
+                wrapper.style.borderRadius = '16px';
+                wrapper.style.border = '1px solid var(--card-border)';
+                fsBtn.innerHTML = `
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                    Fullscreen
+                `;
+            }
+        });
+
+        // Initialize controls
+        updateControls();
+    </script>
+</body>
+</html>

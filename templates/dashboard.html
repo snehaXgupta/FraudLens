@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | FraudLens - AI-Powered Review Verification</title>
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Chart.js for graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+  <div class="dashboard-wrapper">
+    <!-- Toast notifications stack -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- ==========================================================================
+         SIDEBAR NAVIGATION (User Dashboard Interface)
+         ========================================================================== -->
+    <aside class="sidebar" id="app-sidebar">
+      <div class="sidebar-brand">
+        <img src="{{ url_for('static', filename='images/logo.svg') }}" class="sidebar-logo" alt="FraudLens Logo">
+        <span class="sidebar-title text-gradient">FraudLens</span>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li class="menu-item active" data-panel="dashboard">
+          <a class="menu-link"><i class="fa-solid fa-chart-line"></i> <span>Dashboard</span></a>
+        </li>
+        <li class="menu-item" data-panel="detect">
+          <a class="menu-link"><i class="fa-solid fa-microscope"></i> <span>Detect Review</span></a>
+        </li>
+        <li class="menu-item" data-panel="settings">
+          <a class="menu-link"><i class="fa-solid fa-sliders"></i> <span>Settings</span></a>
+        </li>
+        <li class="menu-item" style="margin-top: 30px;">
+          <a href="{{ url_for('logout') }}" class="menu-link" style="color: var(--accent-rose);"><i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Logout</span></a>
+        </li>
+      </ul>
+
+      <!-- User Profile footer inside sidebar -->
+      <div class="sidebar-footer">
+        <img src="https://api.dicebear.com/7.x/bottts/svg?seed={{ username }}" alt="User Avatar" class="user-avatar">
+        <div class="user-details">
+          <p class="user-name">{{ username }}</p>
+          <p class="user-role">Platform User</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==========================================================================
+         MAIN CONTENT INTERFACE
+         ========================================================================== -->
+    <main class="main-content">
+      
+      <!-- TOP NAVBAR -->
+      <header class="top-navbar">
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <button id="sidebar-mobile-toggle" class="sidebar-toggle-btn">
+            <i class="fa-solid fa-bars-staggered"></i>
+          </button>
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Search analyses, reviews..." id="global-search">
+          </div>
+        </div>
+
+        <div class="navbar-actions">
+          <!-- Light/Dark Mode Switch -->
+          <button id="theme-toggle" class="nav-btn" title="Toggle Theme">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+
+
+
+          <!-- Quick Action Button -->
+          <button id="quick-analyze-nav-btn" class="btn-primary" style="padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; width: auto; box-shadow: none;">
+            <i class="fa-solid fa-bolt" style="margin-right: 6px;"></i> Scan Review
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENT BODY (SWITCHABLE PANELS) -->
+      <section class="content-body">
+
+        <!-- ==========================================================================
+             PANEL 1: USER DASHBOARD LANDING
+             ========================================================================== -->
+        <div id="panel-dashboard" class="dashboard-panel active">
+          <!-- Welcome Banner -->
+          <div class="welcome-hero">
+            <h2 class="welcome-title">Welcome Back, <span class="text-gradient">{{ username }}</span>!</h2>
+            <p class="welcome-subtitle">
+              <i class="fa-solid fa-circle" style="color: var(--accent-emerald); font-size: 8px; vertical-align: middle; margin-right: 6px; animation: pulseGlow 2s infinite;"></i>
+              Platform Status: <strong style="color: var(--text-primary);" id="status-tag">Secure Mode</strong> | <span id="typing-tagline" class="typing-text text-tech"></span>
+            </p>
+          </div>
+
+          <!-- Stats Cards Grid (User Specific Metrics) -->
+          <div class="stats-grid">
+            <div class="stat-card glass-panel cyan">
+              <div class="stat-header">
+                <span>MY REVIEWS TESTED</span>
+                <div class="stat-icon"><i class="fa-solid fa-receipt"></i></div>
+              </div>
+              <div class="stat-value" id="stat-total">{{ total_checked }}</div>
+              <div class="stat-subinfo">
+                <span>Total verifications performed</span>
+              </div>
+            </div>
+
+            <div class="stat-card glass-panel rose">
+              <div class="stat-header">
+                <span>FAKE REVIEWS FLAGGED</span>
+                <div class="stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+              </div>
+              <div class="stat-value" id="stat-fake">{{ fake_count }}</div>
+              <div class="stat-subinfo">
+                <span>Deceptions exposed and logged</span>
+              </div>
+            </div>
+
+            <div class="stat-card glass-panel emerald">
+              <div class="stat-header">
+                <span>GENUINE REVIEWS</span>
+                <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+              </div>
+              <div class="stat-value" id="stat-genuine">{{ genuine_count }}</div>
+              <div class="stat-subinfo">
+                <span>Genuine product verifications verified</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts Row (User Performance Overviews) -->
+          <div class="charts-grid" style="margin-bottom: 30px;">
+            <div class="chart-card glass-panel">
+              <h3 class="chart-title">
+                <span><i class="fa-solid fa-chart-area" style="color: var(--accent-cyan); margin-right: 8px;"></i> My Weekly Scans History</span>
+              </h3>
+              <div class="chart-container">
+                <canvas id="reviewTrendChart"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card glass-panel">
+              <h3 class="chart-title">
+                <span><i class="fa-solid fa-chart-pie" style="color: var(--accent-purple); margin-right: 8px;"></i> Detection Ratio</span>
+              </h3>
+              <div class="chart-container">
+                <canvas id="reviewSplitChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- INTEGRATED REVIEW HISTORY LOG TABLE (Visible on Dashboard) -->
+          <div class="glass-panel" style="padding: 24px; margin-bottom: 20px;">
+            <h3 class="chart-title" style="font-size: 18px; margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px;">
+              <span><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-purple); margin-right: 8px;"></i> My Tested Reviews Log</span>
+            </h3>
+
+            <div class="history-controls" style="margin-bottom: 20px;">
+              <div class="search-box" style="width: 100%; max-width: 300px;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Search saved reviews..." id="history-search">
+              </div>
+              
+              <div class="history-filters">
+                <select class="form-select" id="history-filter-verdict">
+                  <option value="all">All Verdicts</option>
+                  <option value="Fake">Fake Reviews</option>
+                  <option value="Genuine">Genuine Reviews</option>
+                </select>
+
+                <select class="form-select" id="history-filter-sentiment">
+                  <option value="all">All Sentiments</option>
+                  <option value="Positive">Positive</option>
+                  <option value="Negative">Negative</option>
+                  <option value="Neutral">Neutral</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table class="custom-table" id="history-table">
+                <thead>
+                  <tr>
+                    <th>Review Text Snippet</th>
+                    <th>Prediction Verdict</th>
+                    <th style="text-align: center;">Confidence Score</th>
+                    <th style="text-align: center;">Sentiment</th>
+                    <th>Analysis Date</th>
+                    <th style="text-align: center;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="history-table-body">
+                  <!-- Dynamically populated via JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Table Pagination Footer -->
+            <div class="pagination-wrapper">
+              <span id="history-page-info">Showing 1 to 4 of 4 analyses</span>
+              <div class="pagination-controls">
+                <button class="pagination-btn" id="btn-page-prev" disabled><i class="fa-solid fa-chevron-left"></i> Prev</button>
+                <button class="pagination-btn" id="btn-page-next" disabled>Next <i class="fa-solid fa-chevron-right"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==========================================================================
+             PANEL 2: REVIEW DETECTION ENGINE (3 Parallel Input Boxes)
+             ========================================================================== -->
+        <div id="panel-detect" class="dashboard-panel">
+          <div class="welcome-hero">
+            <h2 class="welcome-title">AI Review <span class="text-gradient">Verification Hub</span></h2>
+            <p class="welcome-subtitle">Perform real-time checks on product feedback using three distinct scanner boxes.</p>
+          </div>
+
+          <!-- Layout: 3 Columns of Inputs at the same time -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px;">
+            
+            <!-- Box 1: Text Input -->
+            <div class="analyzer-input-card glass-panel" style="display: flex; flex-direction: column;">
+              <div class="input-header">
+                <span class="text-tech" style="font-weight: 600; color: var(--accent-purple);"><i class="fa-solid fa-pen-to-square"></i> Manual Text Scanner</span>
+                <span class="char-counter" id="textarea-counter" style="font-size: 10px;">0/1000</span>
+              </div>
+              <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 12px;">Type or paste the review text directly into the box below.</p>
+              <textarea 
+                class="review-textarea" 
+                id="review-input" 
+                placeholder="Type or paste review content here to evaluate..."
+                maxlength="1000"
+                style="height: 120px; font-size: 13px; margin-bottom: 12px;"
+              ></textarea>
+              <div class="button-actions" style="margin-top: auto;">
+                <button class="btn-secondary" id="clear-input-btn" style="padding: 10px 16px; font-size: 13px;"><i class="fa-solid fa-trash-can"></i> Clear</button>
+                <button class="btn-primary" id="analyze-btn" style="padding: 10px 16px; font-size: 13px;">
+                  <i class="fa-solid fa-shield-halved"></i> Scan Text
+                </button>
+              </div>
+            </div>
+
+            <!-- Box 2: Voice Scanner -->
+            <div class="analyzer-input-card glass-panel" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+              <span class="text-tech" style="font-weight: 600; color: var(--accent-purple); align-self: flex-start; margin-bottom: 4px;"><i class="fa-solid fa-microphone"></i> Voice Scanner</span>
+              <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; align-self: flex-start; text-align: left;">Click the microphone and speak to capture audio reviews.</p>
+              
+              <div class="voice-scan-container" style="border: none; background: none; min-height: auto; padding: 0; margin-top: auto; margin-bottom: auto; width: 100%;">
+                <div class="mic-btn-large" id="voice-mic-btn" style="width: 60px; height: 60px; font-size: 24px; margin: 0 auto 10px;">
+                  <i class="fa-solid fa-microphone"></i>
+                </div>
+                <h5 id="voice-status-text" style="font-weight: 600; font-size: 13px; margin-bottom: 4px;">Awaiting Audio</h5>
+                <p id="voice-desc-text" style="font-size: 10px; color: var(--text-muted); max-width: 200px; margin: 0 auto;">Click to record and transcribe spoken review.</p>
+                
+                <div class="voice-wave-visualizer" id="voice-wave-visualizer" style="height: 25px; margin: 8px 0;">
+                  <div class="wave-bar" style="width: 3px;"></div>
+                  <div class="wave-bar" style="width: 3px;"></div>
+                  <div class="wave-bar" style="width: 3px;"></div>
+                  <div class="wave-bar" style="width: 3px;"></div>
+                  <div class="wave-bar" style="width: 3px;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Box 3: URL Crawler -->
+            <div class="analyzer-input-card glass-panel" style="display: flex; flex-direction: column;">
+              <span class="text-tech" style="font-weight: 600; color: var(--accent-purple);"><i class="fa-solid fa-globe"></i> Product URL Crawler</span>
+              <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; margin-top: 4px;">Paste an e-commerce link to extract and check reviews.</p>
+              
+              <div style="margin-top: auto; margin-bottom: auto;">
+                <input type="url" id="crawl-url-input" class="form-input" placeholder="https://amazon.com/product/..." style="padding-left: 15px; margin-bottom: 12px; font-size: 13px;">
+                <button class="btn-primary" id="crawl-scan-btn" style="padding: 10px 16px; font-size: 13px;">
+                  <i class="fa-solid fa-spider"></i> Fetch & Scan Reviews
+                </button>
+              </div>
+            </div>
+
+            <!-- Box 4: Bulk CSV Uploader -->
+            <div class="analyzer-input-card glass-panel" style="display: flex; flex-direction: column;">
+              <span class="text-tech" style="font-weight: 600; color: var(--accent-purple);"><i class="fa-solid fa-file-csv"></i> Bulk CSV Scanner</span>
+              <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; margin-top: 4px;">Upload a .csv file containing reviews to run bulk scans.</p>
+              
+              <div style="margin-top: auto; margin-bottom: auto;">
+                <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+                <button class="btn-secondary" id="csv-select-btn" style="width: 100%; margin-bottom: 8px; font-size: 13px; padding: 10px 16px;">
+                  <i class="fa-solid fa-file-import"></i> Choose CSV File
+                </button>
+                <div id="csv-file-name" style="font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">No file chosen</div>
+                <button class="btn-primary" id="csv-scan-btn" style="padding: 10px 16px; font-size: 13px;" disabled>
+                  <i class="fa-solid fa-upload"></i> Scan CSV Batch
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Columns: Results Box & Quick Examples Carousel -->
+          <div class="detect-container" style="grid-template-columns: 1.1fr 0.9fr;">
+            
+            <!-- Result diagnostics display -->
+            <div class="results-card glass-panel" id="results-panel">
+              <div class="results-placeholder" id="results-placeholder">
+                <i class="fa-solid fa-shield-halved" style="font-size: 50px;"></i>
+                <h4>Scanner Standby Mode</h4>
+                <p style="font-size: 12px; margin-top: 8px; line-height: 1.4;">Submit text, record audio, or crawl a URL to view the secure review verifications.</p>
+              </div>
+
+              <div class="result-verdict-box" id="results-verdict-area" style="display: none;">
+                <span class="badge-ai-verified"><i class="fa-solid fa-shield-check"></i> FRAUDLENS SECURE SCAN</span>
+                <p class="verdict-title">Model Classification Output</p>
+                
+                <!-- Fake / Genuine alert -->
+                <div class="verdict-status" id="verdict-status-badge">FAKE REVIEW DETECTED</div>
+
+                <!-- Confidence gauge -->
+                <div class="gauge-wrapper">
+                  <svg class="gauge-svg" viewBox="0 0 160 160" width="100%" height="100%">
+                    <circle class="gauge-bg" cx="80" cy="80" r="70"></circle>
+                    <circle class="gauge-fill" id="verdict-gauge-fill" cx="80" cy="80" r="70"></circle>
+                    <defs>
+                      <linearGradient id="gauge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#7c5dfa" />
+                        <stop offset="100%" stop-color="#3b82f6" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div class="gauge-percent">
+                    <span class="gauge-val" id="verdict-confidence-val">0%</span>
+                    <span class="gauge-lbl">Certainty</span>
+                  </div>
+                </div>
+
+                <!-- Sentiment metrics -->
+                <div class="metric-row">
+                  <div class="metric-label">
+                    <span>Sentiment Score</span>
+                    <span id="verdict-sentiment-label" style="font-weight: 600;">Positive</span>
+                  </div>
+                  <div class="metric-bar-bg">
+                    <div class="metric-bar-fill cyan" id="verdict-sentiment-bar" style="width: 0%;"></div>
+                  </div>
+                </div>
+
+                <!-- Diagnostic Latency Details -->
+                <div style="margin-top: 20px; border-top: 1px solid var(--glass-border); padding-top: 15px; text-align: left; font-size: 12px; display: flex; flex-direction: column; gap: 6px;">
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted);">Process Speed:</span>
+                    <span id="verdict-time" style="font-weight: 500;">0.04s</span>
+                  </div>
+                  <div style="display: flex; justify-content: space-between;">
+                    <span style="color: var(--text-muted);">Cleaned text:</span>
+                    <span id="verdict-cleaned-snippet" style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 160px;">-</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Batch Verdict Area -->
+              <div class="result-verdict-box" id="results-batch-area" style="display: none; text-align: center;">
+                <span class="badge-ai-verified" style="background: rgba(6, 182, 212, 0.1); border-color: rgba(6, 182, 212, 0.2); color: var(--accent-cyan);"><i class="fa-solid fa-list-check"></i> BULK BATCH VERIFICATION</span>
+                <p class="verdict-title" style="margin-top: 10px; margin-bottom: 15px;">Batch Scan Summary</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;">
+                  <div class="card" style="padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border);">
+                    <div style="font-size: 11px; color: var(--text-secondary);">SCANNED</div>
+                    <div style="font-size: 24px; font-weight: 700; color: var(--text-primary);" id="batch-total-val">0</div>
+                  </div>
+                  <div class="card" style="padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border);">
+                    <div style="font-size: 11px; color: var(--accent-rose);">FLAGGED FAKE</div>
+                    <div style="font-size: 24px; font-weight: 700; color: var(--accent-rose);" id="batch-fake-val">0</div>
+                  </div>
+                </div>
+                
+                <!-- Ratio progress bar -->
+                <div class="metric-row" style="margin-bottom: 25px; text-align: left;">
+                  <div class="metric-label" style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px;">
+                    <span>Genuine Review Ratio</span>
+                    <span id="batch-genuine-ratio-lbl" style="font-weight: 600; color: var(--accent-emerald);">0%</span>
+                  </div>
+                  <div class="metric-bar-bg" style="height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden;">
+                    <div class="metric-bar-fill emerald" id="batch-ratio-bar" style="width: 0%; height: 100%; transition: width 0.8s ease;"></div>
+                  </div>
+                </div>
+                
+                <button class="btn-primary" id="batch-download-btn" style="width: 100%; padding: 12px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  <i class="fa-solid fa-file-arrow-down"></i> Download Annotated CSV
+                </button>
+              </div>
+            </div>
+
+            <!-- Side column: Examples and Pipeline status -->
+            <div>
+              <!-- Pipeline flow indicator -->
+              <div class="pipeline-card glass-panel" style="margin-top: 0; padding: 16px;">
+                <h4 class="chart-title" style="font-size: 14px; margin-bottom: 12px;">
+                  <span><i class="fa-solid fa-circle-nodes" style="color: var(--accent-purple); margin-right: 8px;"></i> Verification Sequence</span>
+                </h4>
+                
+                <div class="pipeline-flow" style="padding: 0;">
+                  <div class="pipeline-step" id="pipe-step-1">
+                    <div class="step-node" style="width: 32px; height: 32px; font-size: 12px;"><i class="fa-solid fa-paragraph"></i></div>
+                    <span class="step-label" style="font-size: 9px;">Input</span>
+                  </div>
+                  <div class="pipeline-arrow" id="pipe-arrow-1" style="top: -16px;"></div>
+
+                  <div class="pipeline-step" id="pipe-step-2">
+                    <div class="step-node" style="width: 32px; height: 32px; font-size: 12px;"><i class="fa-solid fa-broom"></i></div>
+                    <span class="step-label" style="font-size: 9px;">Clean</span>
+                  </div>
+                  <div class="pipeline-arrow" id="pipe-arrow-2" style="top: -16px;"></div>
+
+                  <div class="pipeline-step" id="pipe-step-3">
+                    <div class="step-node" style="width: 32px; height: 32px; font-size: 12px;"><i class="fa-solid fa-hashtag"></i></div>
+                    <span class="step-label" style="font-size: 9px;">TF-IDF</span>
+                  </div>
+                  <div class="pipeline-arrow" id="pipe-arrow-3" style="top: -16px;"></div>
+
+                  <div class="pipeline-step" id="pipe-step-4">
+                    <div class="step-node" style="width: 32px; height: 32px; font-size: 12px;"><i class="fa-solid fa-brain"></i></div>
+                    <span class="step-label" style="font-size: 9px;">ML Class</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Examples Carousel -->
+              <div class="carousel-card glass-panel" style="margin-top: 20px;">
+                <div class="carousel-title text-tech" style="font-size: 14px;">
+                  <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-cyan);"></i>
+                  <span>Test Examples Carousel</span>
+                </div>
+                <div class="carousel-viewport">
+                  <div class="carousel-track" id="carousel-track">
+                    <div class="carousel-slide" data-type="fake" style="font-size: 12px;">
+                      <strong style="color: var(--accent-rose);">[SPAM INCEN]</strong> "Five stars! The seller refunded my money to write this, but the item is truly amazing! High-quality and nice packing."
+                    </div>
+                    <div class="carousel-slide" data-type="genuine" style="font-size: 12px;">
+                      <strong style="color: var(--accent-emerald);">[GENUINE]</strong> "It's standard quality. A bit smaller than expected but works fine. Used it for three weeks, no complaints."
+                    </div>
+                    <div class="carousel-slide" data-type="fake" style="font-size: 12px;">
+                      <strong style="color: var(--accent-rose);">[SPAM BOT]</strong> "BUY THIS PRODUCT NOW!!! AMAZINGGG WORLDS BEST ITEM EVER CREATED!!! 100% RECOMMEND LOVE IT GREAT GREAT!!!"
+                    </div>
+                  </div>
+                </div>
+                <div class="carousel-controls">
+                  <button class="carousel-ctrl-btn" id="carousel-prev" title="Previous"><i class="fa-solid fa-chevron-left"></i></button>
+                  <button class="carousel-ctrl-btn" id="carousel-next" title="Next"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ==========================================================================
+             PANEL 3: SETTINGS
+             ========================================================================== -->
+        <div id="panel-settings" class="dashboard-panel">
+          <div class="welcome-hero">
+            <h2 class="welcome-title">Platform <span class="text-gradient">Settings</span></h2>
+            <p class="welcome-subtitle">Configure theme preferences and security parameters for your FraudLens portal.</p>
+          </div>
+
+          <div class="settings-grid">
+            <!-- Left Card: Profile & Passwords -->
+            <div class="settings-card glass-panel">
+              <h3 class="settings-title"><i class="fa-solid fa-user-gear" style="color: var(--accent-cyan); margin-right: 8px;"></i> Account Credentials</h3>
+              
+              <form id="settings-password-form" onsubmit="event.preventDefault(); alert('Password updated successfully! (Mock Action)');">
+                <div class="form-group">
+                  <label class="form-label" for="setting-email">Account E-mail</label>
+                  <input type="email" id="setting-email" class="form-input" value="{{ email }}" readonly style="padding-left: 15px; opacity: 0.6; cursor: not-allowed;">
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label" for="setting-pass">Current Password</label>
+                  <input type="password" id="setting-pass" class="form-input" placeholder="••••••••" style="padding-left: 15px;">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="setting-newpass">New Password</label>
+                  <input type="password" id="setting-newpass" class="form-input" placeholder="••••••••" style="padding-left: 15px;">
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: auto; padding: 10px 24px;">Update Password</button>
+              </form>
+            </div>
+
+            <!-- Right Card: Preferences -->
+            <div class="settings-card glass-panel">
+              <h3 class="settings-title"><i class="fa-solid fa-sliders" style="color: var(--accent-purple); margin-right: 8px;"></i> Display & Security Settings</h3>
+              
+              <div class="toggle-setting-row">
+                <div class="toggle-setting-info">
+                  <span class="toggle-setting-title">Enable Dark Theme</span>
+                  <span class="toggle-setting-desc">Toggle the deep velvet night aesthetic.</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="setting-dark-toggle">
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="toggle-setting-row">
+                <div class="toggle-setting-info">
+                  <span class="toggle-setting-title">Log Local Verifications</span>
+                  <span class="toggle-setting-desc">Cache my tested reviews in local history log.</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="setting-refresh-toggle" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="toggle-setting-row">
+                <div class="toggle-setting-info">
+                  <span class="toggle-setting-title">Security Alert Toasts</span>
+                  <span class="toggle-setting-desc">Push instant warnings when fake reviews are identified.</span>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="setting-notif-toggle" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+
+    </main>
+
+    <!-- ==========================================================================
+         CHATBOT PLATFORM WIDGET
+         ========================================================================== -->
+    <div class="chatbot-widget">
+      <!-- Bubble Button -->
+      <div class="chat-bubble" id="chat-bubble-btn">
+        <i class="fa-solid fa-robot"></i>
+      </div>
+      
+      <!-- Chat Window -->
+      <div class="chat-window" id="chat-window-box">
+        <div class="chat-header">
+          <span><i class="fa-solid fa-circle" style="color: var(--accent-emerald); font-size: 8px; vertical-align: middle; margin-right: 4px;"></i> FraudLens Helper Bot</span>
+          <i class="fa-solid fa-xmark" id="chat-close-btn" style="cursor: pointer;"></i>
+        </div>
+        
+        <div class="chat-messages" id="chat-messages-container">
+          <div class="chat-msg bot">
+            Hello! I am the FraudLens helper agent. Ask me about the project architecture, training data, or how the models detect fake product reviews!
+          </div>
+        </div>
+        
+        <div class="chat-input-area">
+          <input type="text" class="chat-input" id="chat-input-field" placeholder="Ask a question...">
+          <button class="chat-send-btn" id="chat-send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Custom Javascript -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
