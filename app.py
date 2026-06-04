@@ -5,6 +5,8 @@ import csv
 import io
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Attempt to import ML packages
 try:
@@ -136,12 +138,39 @@ MOCK_HISTORY = [
     }
 ]
 
-# In-memory users db for mock demo
-USERS = {
-    "test@gmail.com": "password123",
-    "shaurya@gmail.com": "cse2026",
-    "sneha@gmail.com": "cse2026"
-}
+# Database configuration
+db_url = os.environ.get('DATABASE_URL')
+if db_url:
+    # Render uses postgres://, but SQLAlchemy requires postgresql://
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+else:
+    # Fallback to local SQLite file
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.dirname(__file__), 'database.db')
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+# User Database Model
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    email = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+
+# Create tables and seed default users
+with app.app_context():
+    db.create_all()
+    # Insert default users if table is empty
+    if User.query.count() == 0:
+        default_users = [
+            User(name="Test", email="test@gmail.com", password="password123"),
+            User(name="Shaurya", email="shaurya@gmail.com", password="cse2026"),
+            User(name="Sneha", email="sneha@gmail.com", password="cse2026")
+        ]
+        db.session.bulk_save_objects(default_users)
+        db.session.commit()
 
 # ==========================================================================
 # FLASK VIEWS / ROUTES
@@ -163,10 +192,10 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        if email in USERS and USERS[email] == password:
+        user = User.query.filter_by(email=email).first()
+        if user and (user.password == password or check_password_hash(user.password, password)):
             session['user'] = email
-            # Extract user name
-            session['name'] = email.split('@')[0].capitalize()
+            session['name'] = user.name
             return redirect(url_for('dashboard'))
         else:
             error = "Invalid email credentials or password."
@@ -189,10 +218,14 @@ def register():
             error = "Please fill in all fields."
         elif password != confirm_password:
             error = "Passwords do not match."
-        elif email in USERS:
+        elif User.query.filter_by(email=email).first():
             error = "An account with this email already exists."
         else:
-            USERS[email] = password
+            hashed_pw = generate_password_hash(password, method='scrypt')
+            new_user = User(name=name.capitalize(), email=email, password=hashed_pw)
+            db.session.add(new_user)
+            db.session.commit()
+            
             session['user'] = email
             session['name'] = name.capitalize()
             return redirect(url_for('dashboard'))
