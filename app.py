@@ -167,11 +167,22 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
+    password = db.Column(db.String(300), nullable=False)
 
 # Create tables and seed default users
 with app.app_context():
     db.create_all()
+    # Auto-alter password column size in PostgreSQL database to VARCHAR(300)
+    db_uri_str = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+    if 'postgres' in db_uri_str or 'postgresql' in db_uri_str:
+        try:
+            db.session.execute(db.text('ALTER TABLE "user" ALTER COLUMN password TYPE VARCHAR(300);'))
+            db.session.commit()
+            print("PostgreSQL password column resized to VARCHAR(300) successfully.")
+        except Exception as alter_err:
+            db.session.rollback()
+            print(f"PostgreSQL column resize warning/error: {alter_err}")
+            
     # Insert default users if table is empty
     if User.query.count() == 0:
         default_users = [
